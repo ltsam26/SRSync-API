@@ -5,7 +5,6 @@ const isInternal = process.env.DATABASE_URL && process.env.DATABASE_URL.includes
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: (process.env.NODE_ENV === "production" && !isInternal) ? { rejectUnauthorized: false } : false
 });
 
 pool
@@ -15,8 +14,8 @@ pool
     client.release();
   })
   .catch((err) => {
-    console.error("FATAL: Database connection failed:", err.message);
-    process.exit(1); // FIX: crash immediately instead of running broken
+    console.error("FATAL: Database connection failed. Full Error Context:", err);
+    process.exit(1);
   });
 
 module.exports = pool;
