@@ -1,9 +1,11 @@
 const { Pool } = require("pg");
 require("dotenv").config();
 
+const isInternal = process.env.DATABASE_URL && process.env.DATABASE_URL.includes(".internal");
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false
+  ssl: (process.env.NODE_ENV === "production" && !isInternal) ? { rejectUnauthorized: false } : false
 });
 
 pool
