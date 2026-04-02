@@ -59,9 +59,21 @@ app.get("/setup-cloud-db", async (req, res) => {
     const fs = require('fs');
     const path = require('path');
     const pool = require('./config/db');
+    const bcrypt = require('bcrypt');
     const schemaData = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf-8');
     await pool.query(schemaData);
-    res.status(200).send("<h1>✅ SUCCESS! Cloud Database Tables Generated Flawlessly!</h1><p>You can safely close this tab and go log in!</p>");
+
+    const passwordHash = await bcrypt.hash("admin123", 10);
+    const query = `
+      INSERT INTO users (email, name, password_hash, role)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (email) DO UPDATE 
+      SET role = 'admin', password_hash = $3, name = $2
+      RETURNING id, email, name, role;
+    `;
+    await pool.query(query, ["admin@srsyncapi.com", "System Admin", passwordHash, "admin"]);
+
+    res.status(200).send("<h1>✅ SUCCESS! Tables & Admin Generated!</h1><p>You can now log in at /login</p>");
   } catch (err) {
     res.status(500).send("<h1>❌ ERROR:</h1><p>" + err.message + "</p>");
   }
