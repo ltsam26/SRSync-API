@@ -61,7 +61,13 @@ app.get("/setup-cloud-db", async (req, res) => {
     const pool = require('./config/db');
     const bcrypt = require('bcrypt');
     const schemaData = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf-8');
-    await pool.query(schemaData);
+    
+    // Ignore trigger/table existing errors by wrapping in try/catch
+    try {
+      await pool.query(schemaData);
+    } catch (schemaErr) {
+      console.log("Schema sync note:", schemaErr.message);
+    }
 
     const passwordHash = await bcrypt.hash("admin123", 10);
     const query = `
