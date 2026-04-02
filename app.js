@@ -49,14 +49,22 @@ const analyticsRoutes = require("./routes/analytics.routes");
 const subscriptionRoutes = require("./routes/subscription.routes");
 const adminRoutes = require("./routes/admin.routes");
 
-// ─── Health Check ────────────────────────────────────────────────────────────
+// ─── Health Check & Cloud Setup ────────────────────────────────────────────────
 app.get("/", (req, res) => {
-  res.status(200).json({
-    status: "success",
-    message: "SaaS API Platform Backend Running",
-    version: "2.0.0",
-    timestamp: new Date().toISOString(),
-  });
+  res.status(200).json({ status: "success", message: "SaaS API Platform Backend Running" });
+});
+
+app.get("/setup-cloud-db", async (req, res) => {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const pool = require('./config/db');
+    const schemaData = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf-8');
+    await pool.query(schemaData);
+    res.status(200).send("<h1>✅ SUCCESS! Cloud Database Tables Generated Flawlessly!</h1><p>You can safely close this tab and go log in!</p>");
+  } catch (err) {
+    res.status(500).send("<h1>❌ ERROR:</h1><p>" + err.message + "</p>");
+  }
 });
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
